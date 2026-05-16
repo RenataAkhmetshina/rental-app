@@ -1,0 +1,99 @@
+.page {}
+
+.hero {
+  background: #e8eef8;
+  border-bottom: 1px solid #cccccc;
+  padding: 48px 0;
+}
+
+.subtext {
+  font-size: 1rem;
+  color: #555555;
+  margin-bottom: 24px;
+  max-width: 500px;
+}
+
+.heroActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stats {
+  background: #ffffff;
+  border-bottom: 1px solid #cccccc;
+  padding: 32px 0;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  text-align: center;
+}
+
+.statItem { padding: 12px; }
+
+.statValue {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #0066cc;
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: #555555;
+}
+
+.howSection {
+  padding: 40px 0;
+  background: #f5f5f5;
+}
+
+.howSection h2 { margin-bottom: 24px; }
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.step {
+  background: #ffffff;
+  border: 1px solid #cccccc;
+  padding: 20px;
+}
+
+.stepNumber {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #0066cc;
+  margin-bottom: 8px;
+}
+
+.cta {
+  background: #003399;
+  padding: 40px 0;
+  color: #ffffff;
+}
+
+.cta h2 { color: #ffffff; margin-bottom: 8px; }
+.cta p { color: #ccddff; margin-bottom: 20px; }
+
+.ctaActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ctaActions .btn--secondary {
+  background: transparent;
+  color: #ffffff;
+  border-color: #aabbdd;
+}
+
+@media (max-width: 768px) {
+  .statsGrid { grid-template-columns: repeat(2, 1fr); }
+  .steps { grid-template-columns: 1fr; }
+}

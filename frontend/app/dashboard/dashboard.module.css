@@ -1,0 +1,91 @@
+.page { padding: 32px 0 60px; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.main {}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.summaryCard {
+  background: #ffffff;
+  border: 1px solid #cccccc;
+  padding: 16px;
+  text-align: center;
+}
+
+.summaryNum {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #0066cc;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.summaryLabel {
+  font-size: 0.78rem;
+  color: #555555;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.leaseList { display: flex; flex-direction: column; gap: 10px; }
+
+.leaseCard {
+  background: #ffffff;
+  border: 1px solid #cccccc;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.leaseCard:hover { border-color: #0066cc; }
+
+.leaseProp strong { display: block; font-size: 0.92rem; color: #111111; }
+.leaseProp span { font-size: 0.8rem; color: #999999; }
+
+.leaseDates { font-size: 0.82rem; color: #555555; }
+
+.leaseFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.leaseFooter strong { color: #0066cc; }
+
+.sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+.profileCard {
+  background: #ffffff;
+  border: 1px solid #cccccc;
+  padding: 20px 16px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { order: -1; }
+  .summaryGrid { grid-template-columns: repeat(2, 1fr); }
+}
