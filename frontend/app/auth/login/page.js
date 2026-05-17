@@ -31,7 +31,6 @@ export default function LoginPage() {
     <div className={styles.page}>
       <div className={styles.card}>
         <div className={styles.header}>
-          <Link href="/" className={styles.logoLink}>RentNest</Link>
           <h2>Sign In</h2>
           <p>Enter your email and password</p>
         </div>

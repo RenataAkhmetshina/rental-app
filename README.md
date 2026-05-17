@@ -2,8 +2,8 @@
 
 It's a rental marketplace where users can list and browse properties, request leases, and leave reviews. We built it with Next.js on the frontend and Node.js/Express + MongoDB on the backend.
 
-**Live site:**   
-**Backend API:** 
+**Live site:**   - https://rental-app-omega-two.vercel.app
+**Backend API:** - https://rental-app-k2r9.onrender.com/api
 
 ---
 
@@ -93,8 +93,8 @@ FRONTEND_URL=http://localhost:3000
 ```
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 NEXT_PUBLIC_WS_URL=ws://localhost:5000/ws
-UPLOADTHING_SECRET=your_uploadthing_secret
-UPLOADTHING_APP_ID=your_uploadthing_app_id
+UPLOADTHING_TOKEN=your_uploadthing_token
+JWT_SECRET=your_jwt_secret
 ```
 
 ---
