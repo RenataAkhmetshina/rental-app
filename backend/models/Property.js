@@ -67,6 +67,12 @@ const propertySchema = new mongoose.Schema(
       index: true,
     },
     amenities: [String],
+    savedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
     averageRating: {
       type: Number,
       default: 0,

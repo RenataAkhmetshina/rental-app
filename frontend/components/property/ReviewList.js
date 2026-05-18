@@ -1,7 +1,8 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { reviewsApi } from '../../lib/api';
-import { useWS } from '../../context/WSContext'; 
+import { useWS } from '../../context/WSContext';
+import { useUploadThing } from '../../lib/uploadthingClient';
 import styles from './ReviewList.module.css';
 
 function timeAgo(date) {
@@ -19,11 +20,20 @@ export default function ReviewList({ reviews: initialReviews, currentUserId, onD
   const { on } = useWS();
   const [localReviews, setLocalReviews] = useState(initialReviews);
   const [deleting, setDeleting] = useState(null);
-  
+
   const [editingId, setEditingId] = useState(null);
   const [editComment, setEditComment] = useState('');
   const [editRating, setEditRating] = useState(5);
+  const [editPhotoPreviews, setEditPhotoPreviews] = useState([]);
+  const [editPhotoFiles, setEditPhotoFiles] = useState([]);
   const [updating, setUpdating] = useState(false);
+
+  const { startUpload } = useUploadThing('propertyImages', {
+    headers: () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+      return token ? { 'x-ut-token': `Bearer ${token}` } : {};
+    },
+  });
 
   useEffect(() => {
     setLocalReviews(initialReviews);
@@ -67,21 +77,33 @@ export default function ReviewList({ reviews: initialReviews, currentUserId, onD
     setEditingId(review._id);
     setEditComment(review.comment);
     setEditRating(review.rating);
+    setEditPhotoPreviews(review.photos || []);
+    setEditPhotoFiles([]);
   };
 
   const cancelEditing = () => {
     setEditingId(null);
     setEditComment('');
     setEditRating(5);
+    setEditPhotoPreviews([]);
+    setEditPhotoFiles([]);
   };
 
   const handleUpdate = async (id) => {
     if (!editComment.trim()) return alert('Comment cannot be empty');
     setUpdating(true);
     try {
+      let photoUrls = editPhotoPreviews.filter((p) => !p.startsWith('blob:'));
+
+      if (editPhotoFiles.length > 0) {
+        const uploaded = await startUpload(editPhotoFiles);
+        if (uploaded) photoUrls = [...photoUrls, ...uploaded.map((f) => f.url)];
+      }
+
       const response = await reviewsApi.update(id, {
         comment: editComment,
         rating: editRating,
+        photos: photoUrls,
       });
 
       setLocalReviews((prev) =>
@@ -112,8 +134,8 @@ export default function ReviewList({ reviews: initialReviews, currentUserId, onD
           <div key={r._id} className={styles.review}>
             <div className={styles.reviewHeader}>
               <div className={styles.authorRow}>
-                <div 
-                  className={`avatar avatar--sm ${styles.avatar}`} 
+                <div
+                  className={`avatar avatar--sm ${styles.avatar}`}
                   style={{ background: '#e8eef8', color: '#0066cc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Arial, sans-serif', fontWeight: 600, fontSize: '0.75rem' }}
                 >
                   {r.author?.avatar ? (
@@ -129,7 +151,6 @@ export default function ReviewList({ reviews: initialReviews, currentUserId, onD
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                {/* Stars */}
                 {!isEditing ? (
                   <span className="stars">
                     {[1, 2, 3, 4, 5].map((n) => (
@@ -139,17 +160,14 @@ export default function ReviewList({ reviews: initialReviews, currentUserId, onD
                 ) : (
                   <span className="stars" style={{ cursor: 'pointer' }}>
                     {[1, 2, 3, 4, 5].map((n) => (
-                      <span 
-                        key={n} 
+                      <span
+                        key={n}
                         style={{ opacity: n <= editRating ? 1 : 0.25 }}
                         onClick={() => setEditRating(n)}
-                      >
-                        ★
-                      </span>
+                      >★</span>
                     ))}
                   </span>
                 )}
-
 
                 {currentUserId && r.author?._id === currentUserId && !isEditing && (
                   <div style={{ display: 'flex', gap: '4px' }}>
@@ -157,23 +175,18 @@ export default function ReviewList({ reviews: initialReviews, currentUserId, onD
                       className="btn btn--ghost btn--sm"
                       onClick={() => startEditing(r)}
                       style={{ color: '#0066cc', padding: '4px 8px' }}
-                    >
-                      ✏️
-                    </button>
+                    >✏️</button>
                     <button
                       className="btn btn--ghost btn--sm"
                       onClick={() => handleDelete(r._id)}
                       disabled={deleting === r._id}
                       style={{ color: '#dc3545', padding: '4px 8px' }}
-                    >
-                      {deleting === r._id ? '…' : '🗑'}
-                    </button>
+                    >{deleting === r._id ? '…' : '🗑'}</button>
                   </div>
                 )}
               </div>
             </div>
 
-            
             {isEditing ? (
               <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <textarea
@@ -183,29 +196,65 @@ export default function ReviewList({ reviews: initialReviews, currentUserId, onD
                   style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
                   rows={3}
                 />
+
+                {editPhotoPreviews.length > 0 && (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {editPhotoPreviews.map((src, i) => (
+                      <div key={i} style={{ position: 'relative' }}>
+                        <img
+                          src={src}
+                          alt=""
+                          style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 4 }}
+                        />
+                        <button
+                          onClick={() => setEditPhotoPreviews((prev) => prev.filter((_, j) => j !== i))}
+                          style={{
+                            position: 'absolute', top: -6, right: -6,
+                            background: '#dc3545', color: '#fff',
+                            border: 'none', borderRadius: '50%',
+                            width: 18, height: 18, cursor: 'pointer',
+                            fontSize: 11, lineHeight: '18px', textAlign: 'center',
+                          }}
+                        >×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  style={{ fontSize: '0.85rem' }}
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    setEditPhotoFiles(files);
+                    setEditPhotoPreviews((prev) => [
+                      ...prev,
+                      ...files.map((f) => URL.createObjectURL(f)),
+                    ]);
+                  }}
+                />
+
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                  <button 
-                    className="btn btn--secondary btn--sm" 
+                  <button
+                    className="btn btn--secondary btn--sm"
                     onClick={cancelEditing}
                     disabled={updating}
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    className="btn btn--primary btn--sm" 
+                  >Cancel</button>
+                  <button
+                    className="btn btn--primary btn--sm"
                     onClick={() => handleUpdate(r._id)}
                     disabled={updating}
                     style={{ background: '#0066cc', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: '4px' }}
-                  >
-                    {updating ? 'Saving...' : 'Save'}
-                  </button>
+                  >{updating ? 'Saving...' : 'Save'}</button>
                 </div>
               </div>
             ) : (
               <p className={styles.comment}>{r.comment}</p>
             )}
 
-            {r.photos?.length > 0 && (
+            {!isEditing && r.photos?.length > 0 && (
               <div className={styles.photos}>
                 {r.photos.map((p, i) => (
                   <img key={i} src={p} alt={`Review photo ${i + 1}`} className={styles.photo} />
