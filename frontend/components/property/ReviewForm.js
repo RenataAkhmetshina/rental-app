@@ -13,8 +13,18 @@ export default function ReviewForm({ propertyId, onSuccess }) {
   const [photoFiles, setPhotoFiles] = useState([]);
   const [photoPreviews, setPhotoPreviews] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
-  const { startUpload } = useUploadThing('propertyImages');
+  const { startUpload } = useUploadThing('propertyImages', {
+    headers: () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+      return token ? { 'x-ut-token': `Bearer ${token}` } : {};
+    },
+    onUploadError: (err) => {
+      setUploadError(err.message || 'Upload failed');
+      setUploading(false);
+    },
+  });
 
   const handlePhotoChange = (e) => {
     const files = Array.from(e.target.files);
@@ -34,6 +44,7 @@ export default function ReviewForm({ propertyId, onSuccess }) {
 
     setLoading(true);
     setError('');
+    setUploadError('');
 
     try {
       let photoUrls = [];
@@ -42,6 +53,9 @@ export default function ReviewForm({ propertyId, onSuccess }) {
         setUploading(true);
         const uploaded = await startUpload(photoFiles);
         setUploading(false);
+
+        if (!uploaded || uploadError) throw new Error(uploadError || 'Photo upload failed');
+
         photoUrls = uploaded.map((f) => f.url);
       }
 
@@ -77,7 +91,9 @@ export default function ReviewForm({ propertyId, onSuccess }) {
   return (
     <div style={{ background: '#f5f5f5', borderRadius: '2px', padding: 24, marginBottom: 32 }}>
       <h4 style={{ marginBottom: 16 }}>Write a Review</h4>
-      {error && <div className="alert alert--error">{error}</div>}
+      {(error || uploadError) && (
+        <div className="alert alert--error">{error || uploadError}</div>
+      )}
 
       <div style={{ marginBottom: 16 }}>
         <div style={{ fontSize: '0.85rem', fontWeight: 500, marginBottom: 8 }}>Rating</div>
