@@ -116,7 +116,6 @@ JWT_SECRET=your_jwt_secret
 | POST   | /api/properties          | Create property (auth required)                                                       |
 | PUT    | /api/properties/:id      | Edit property (owner only)                                                            |
 | DELETE | /api/properties/:id      | Delete property (owner only)                                                          |
-| POST   | /api/properties/:id/save | Save/unsave property                                                                  |
 
 ### Leases
 | Method | Route                  | Description               |
