@@ -49,6 +49,16 @@ export default function PropertyCard({ property, onUpdate }) {
           </span>
           <span className={`badge badge--type`}>{property.type}</span>
         </div>
+        {user && !isOwner && (
+          <button
+            className={`${styles.saveBtn} ${isSaved ? styles.saved : ''}`}
+            onClick={handleSave}
+            disabled={saving}
+            title={isSaved ? 'Unsave' : 'Save'}
+          >
+            {isSaved ? '♥' : '♡'}
+          </button>
+        )}
       </div>
 
       <div className={styles.body}>
