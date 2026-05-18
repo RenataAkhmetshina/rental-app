@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { reviewsApi } from '../../lib/api';
+import { useUploadThing } from '../../lib/uploadthingClient';
 
 export default function ReviewForm({ propertyId, onSuccess }) {
   const [rating, setRating] = useState(0);
@@ -9,6 +10,22 @@ export default function ReviewForm({ propertyId, onSuccess }) {
   const [error, setError] = useState('');
   const [hovered, setHovered] = useState(0);
   const [open, setOpen] = useState(false);
+  const [photoFiles, setPhotoFiles] = useState([]);
+  const [photoPreviews, setPhotoPreviews] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
+  const { startUpload } = useUploadThing('propertyImages');
+
+  const handlePhotoChange = (e) => {
+    const files = Array.from(e.target.files);
+    setPhotoFiles(files);
+    setPhotoPreviews(files.map((f) => URL.createObjectURL(f)));
+  };
+
+  const removePhoto = (index) => {
+    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
+    setPhotoPreviews((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,16 +34,35 @@ export default function ReviewForm({ propertyId, onSuccess }) {
 
     setLoading(true);
     setError('');
+
     try {
-      const data = await reviewsApi.create({ propertyId, rating, comment });
+      let photoUrls = [];
+
+      if (photoFiles.length > 0) {
+        setUploading(true);
+        const uploaded = await startUpload(photoFiles);
+        setUploading(false);
+        photoUrls = uploaded.map((f) => f.url);
+      }
+
+      const data = await reviewsApi.create({
+        propertyId,
+        rating,
+        comment,
+        photos: photoUrls,
+      });
+
       onSuccess(data.review);
       setRating(0);
       setComment('');
+      setPhotoFiles([]);
+      setPhotoPreviews([]);
       setOpen(false);
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -46,7 +82,7 @@ export default function ReviewForm({ propertyId, onSuccess }) {
       <div style={{ marginBottom: 16 }}>
         <div style={{ fontSize: '0.85rem', fontWeight: 500, marginBottom: 8 }}>Rating</div>
         <span style={{ display: 'flex', gap: 4 }}>
-          {[1,2,3,4,5].map((n) => (
+          {[1, 2, 3, 4, 5].map((n) => (
             <span
               key={n}
               style={{
@@ -74,10 +110,44 @@ export default function ReviewForm({ propertyId, onSuccess }) {
         />
       </div>
 
+      <div className="form-group" style={{ marginTop: 12 }}>
+        <label className="form-label">Photos (optional)</label>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handlePhotoChange}
+          style={{ display: 'block', marginBottom: 8 }}
+        />
+        {photoPreviews.length > 0 && (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+            {photoPreviews.map((src, i) => (
+              <div key={i} style={{ position: 'relative' }}>
+                <img
+                  src={src}
+                  alt=""
+                  style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4 }}
+                />
+                <button
+                  onClick={() => removePhoto(i)}
+                  style={{
+                    position: 'absolute', top: -6, right: -6,
+                    background: '#dc3545', color: '#fff',
+                    border: 'none', borderRadius: '50%',
+                    width: 20, height: 20, cursor: 'pointer',
+                    fontSize: 12, lineHeight: '20px', textAlign: 'center',
+                  }}
+                >×</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div style={{ display: 'flex', gap: 10 }}>
         <button className="btn btn--ghost btn--sm" onClick={() => setOpen(false)}>Cancel</button>
-        <button className="btn btn--primary btn--sm" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Posting…' : 'Post Review'}
+        <button className="btn btn--primary btn--sm" onClick={handleSubmit} disabled={loading || uploading}>
+          {uploading ? 'Uploading photos…' : loading ? 'Posting…' : 'Post Review'}
         </button>
       </div>
     </div>

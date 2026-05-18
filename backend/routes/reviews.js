@@ -57,7 +57,7 @@ router.post('/', protect, async (req, res, next) => {
 // PUT /api/reviews/:id - update review
 router.put('/:id', protect, async (req, res, next) => {
   try {
-    const { comment, rating } = req.body;
+    const { comment, rating, photos } = req.body;
     let review = await Review.findById(req.params.id);
 
     if (!review) return res.status(404).json({ message: 'Review not found' });
@@ -67,6 +67,7 @@ router.put('/:id', protect, async (req, res, next) => {
 
     review.comment = comment;
     review.rating = rating;
+    if (photos !== undefined) review.photos = photos;
     await review.save();
     
     review = await review.populate('author', 'name avatar');
